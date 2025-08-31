@@ -11,12 +11,24 @@ A TypeScript-based REST API for managing financial transactions, built with Expr
 - 🔧 Development and production environments
 - ✅ Health check endpoint
 
-## API Endpoints
+## API Documentation
 
-### Health Check
+### Interactive API Documentation
+Access the comprehensive Swagger UI documentation at: **http://localhost:3000/api-docs**
+
+The API documentation includes:
+- Complete endpoint specifications
+- Request/response schemas
+- Interactive testing interface
+- Example requests and responses
+- Parameter validation details
+
+### API Endpoints
+
+#### Health Check
 - `GET /health` - API health status
 
-### Transactions
+#### Transactions
 - `GET /transactions` - Get all transactions
 - `GET /transactions/:id` - Get transaction by ID
 - `POST /transactions` - Create new transaction
@@ -106,4 +118,5 @@ Currently uses JSON file storage in the `data/` directory. The architecture is d
 
 The API includes a health check endpoint at `/health` that returns the current status and timestamp.
 
-Access: http://localhost:3000/health
+- **Health Check**: http://localhost:3000/health
+- **API Documentation**: http://localhost:3000/api-docs
