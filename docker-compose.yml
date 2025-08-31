@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  finance-api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    
+  finance-api-dev:
+    build: .
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    command: npm run dev
+    restart: unless-stopped
+    profiles:
+      - dev
