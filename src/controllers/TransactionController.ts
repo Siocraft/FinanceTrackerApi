@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService.js';
 import type { CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction.js';
+import type { PaginationParams } from '../types/Pagination.js';
 
 export class TransactionController {
   private transactionService: TransactionService;
@@ -11,8 +12,53 @@ export class TransactionController {
 
   async getAllTransactions(req: Request, res: Response): Promise<void> {
     try {
-      const transactions = await this.transactionService.getAllTransactions();
-      res.json(transactions);
+      // Check if pagination parameters are provided
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      
+      // If pagination parameters are provided, use paginated endpoint
+      if (page && limit) {
+        const sortBy = req.query.sortBy as PaginationParams['sortBy'] || 'createdAt';
+        const sortOrder = req.query.sortOrder as PaginationParams['sortOrder'] || 'desc';
+        
+        // Validate pagination parameters
+        if (page < 1) {
+          res.status(400).json({ error: 'Page must be greater than 0' });
+          return;
+        }
+        
+        if (limit < 1 || limit > 100) {
+          res.status(400).json({ error: 'Limit must be between 1 and 100' });
+          return;
+        }
+        
+        // Validate sortBy parameter
+        const validSortFields = ['date', 'amount', 'description', 'category', 'createdAt'];
+        if (sortBy && !validSortFields.includes(sortBy)) {
+          res.status(400).json({ error: `sortBy must be one of: ${validSortFields.join(', ')}` });
+          return;
+        }
+        
+        // Validate sortOrder parameter
+        if (sortOrder && !['asc', 'desc'].includes(sortOrder)) {
+          res.status(400).json({ error: 'sortOrder must be either "asc" or "desc"' });
+          return;
+        }
+        
+        const paginationParams: PaginationParams = {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        };
+        
+        const result = await this.transactionService.getPaginatedTransactions(paginationParams);
+        res.json(result);
+      } else {
+        // Return all transactions (backward compatibility)
+        const transactions = await this.transactionService.getAllTransactions();
+        res.json(transactions);
+      }
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch transactions' });
     }
