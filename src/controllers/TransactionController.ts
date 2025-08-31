@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import { TransactionService } from '../services/TransactionService';
-import { CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction';
+import type { Request, Response } from 'express';
+import { TransactionService } from '../services/TransactionService.js';
+import type { CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction.js';
 
 export class TransactionController {
   private transactionService: TransactionService;
@@ -51,7 +51,7 @@ export class TransactionController {
       const newTransaction = await this.transactionService.createTransaction({
         amount: parseFloat(amount.toString()),
         description,
-        category,
+        category: category || 'Other',
         type
       });
 

@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { TransactionController } from './controllers/TransactionController';
-import { TransactionService } from './services/TransactionService';
+import { TransactionController } from './controllers/TransactionController.js';
+import { TransactionService } from './services/TransactionService.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

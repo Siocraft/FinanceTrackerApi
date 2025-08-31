@@ -12,7 +12,7 @@ export interface Transaction {
 export interface CreateTransactionDto {
   amount: number;
   description: string;
-  category?: string;
+  category: string;
   type: 'income' | 'expense';
 }
 

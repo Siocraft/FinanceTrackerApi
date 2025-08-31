@@ -1,7 +1,11 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
-import { Transaction, CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction';
+import type { Transaction, CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class TransactionService {
   private readonly dataDir: string;
@@ -51,7 +55,8 @@ export class TransactionService {
 
   async getTransactionById(id: string): Promise<Transaction | null> {
     const transactions = await this.readTransactions();
-    return transactions.find(t => t.id === id) || null;
+    const transaction = transactions.find(t => t.id === id);
+    return transaction ?? null;
   }
 
   async createTransaction(transactionData: CreateTransactionDto): Promise<Transaction> {
@@ -80,14 +85,15 @@ export class TransactionService {
       return null;
     }
 
-    transactions[index] = {
+    const updatedTransaction: Transaction = {
       ...transactions[index],
       ...updateData,
       updatedAt: new Date().toISOString()
     };
 
+    transactions[index] = updatedTransaction;
     await this.writeTransactions(transactions);
-    return transactions[index];
+    return updatedTransaction;
   }
 
   async deleteTransaction(id: string): Promise<boolean> {
