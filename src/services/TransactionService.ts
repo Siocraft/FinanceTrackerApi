@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import type { Transaction, CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction.js';
+import type { PaginationParams, PaginatedResponse, PaginationMeta } from '../types/Pagination.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,78 @@ export class TransactionService {
 
   async getAllTransactions(): Promise<Transaction[]> {
     return this.readTransactions();
+  }
+
+  async getPaginatedTransactions(params: PaginationParams): Promise<PaginatedResponse<Transaction>> {
+    const transactions = await this.readTransactions();
+    
+    // Apply sorting
+    const sortedTransactions = this.sortTransactions(transactions, params.sortBy, params.sortOrder);
+    
+    // Calculate pagination
+    const totalItems = sortedTransactions.length;
+    const totalPages = Math.ceil(totalItems / params.limit);
+    const startIndex = (params.page - 1) * params.limit;
+    const endIndex = startIndex + params.limit;
+    
+    // Get paginated data
+    const paginatedData = sortedTransactions.slice(startIndex, endIndex);
+    
+    // Create pagination metadata
+    const pagination: PaginationMeta = {
+      currentPage: params.page,
+      totalPages,
+      totalItems,
+      itemsPerPage: params.limit,
+      hasNextPage: params.page < totalPages,
+      hasPreviousPage: params.page > 1,
+    };
+    
+    return {
+      data: paginatedData,
+      pagination,
+    };
+  }
+
+  private sortTransactions(
+    transactions: Transaction[],
+    sortBy: PaginationParams['sortBy'] = 'createdAt',
+    sortOrder: PaginationParams['sortOrder'] = 'desc'
+  ): Transaction[] {
+    return [...transactions].sort((a, b) => {
+      let valueA: string | number;
+      let valueB: string | number;
+      
+      switch (sortBy) {
+        case 'amount':
+          valueA = a.amount;
+          valueB = b.amount;
+          break;
+        case 'date':
+          valueA = new Date(a.date).getTime();
+          valueB = new Date(b.date).getTime();
+          break;
+        case 'description':
+          valueA = a.description.toLowerCase();
+          valueB = b.description.toLowerCase();
+          break;
+        case 'category':
+          valueA = a.category.toLowerCase();
+          valueB = b.category.toLowerCase();
+          break;
+        case 'createdAt':
+        default:
+          valueA = new Date(a.createdAt).getTime();
+          valueB = new Date(b.createdAt).getTime();
+          break;
+      }
+      
+      if (sortOrder === 'asc') {
+        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+      } else {
+        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+      }
+    });
   }
 
   async getTransactionById(id: string): Promise<Transaction | null> {
