@@ -1,0 +1,22 @@
+services:
+  finance-api-local:
+    build:
+      context: .
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - finance-tracker
+
+networks:
+  finance-tracker:
+    driver: bridge

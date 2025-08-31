@@ -1,11 +1,35 @@
-FROM node:22-alpine
+# Development stage
+FROM node:22-alpine AS development
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies (including dev dependencies)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Create data directory
+RUN mkdir -p data
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "run", "dev"]
+
+# Production stage
+FROM node:22-alpine AS production
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
 RUN npm ci --only=production
 
 # Copy source code
