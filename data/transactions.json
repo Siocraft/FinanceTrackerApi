@@ -1,0 +1,11 @@
+[
+  {
+    "id": "ac9ecaa4-19da-4b3e-954d-d0e67e4d5180",
+    "amount": 5000,
+    "description": "Test",
+    "category": "Food",
+    "type": "expense",
+    "date": "2025-08-31T04:27:45.540Z",
+    "createdAt": "2025-08-31T04:27:45.540Z"
+  }
+]

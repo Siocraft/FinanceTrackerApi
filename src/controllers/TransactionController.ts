@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { TransactionService } from '../services/TransactionService.js';
 import type { CreateTransactionDto, UpdateTransactionDto } from '../types/Transaction.js';
 import type { PaginationParams } from '../types/Pagination.js';
+import type { AuthenticatedRequest } from '../middleware/auth.js';
 
 export class TransactionController {
   private transactionService: TransactionService;
@@ -10,7 +11,7 @@ export class TransactionController {
     this.transactionService = new TransactionService();
   }
 
-  async getAllTransactions(req: Request, res: Response): Promise<void> {
+  async getAllTransactions(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       // Check if pagination parameters are provided
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
@@ -52,11 +53,11 @@ export class TransactionController {
           sortOrder,
         };
         
-        const result = await this.transactionService.getPaginatedTransactions(paginationParams);
+        const result = await this.transactionService.getPaginatedTransactions(req.user!.uid, paginationParams);
         res.json(result);
       } else {
         // Return all transactions (backward compatibility)
-        const transactions = await this.transactionService.getAllTransactions();
+        const transactions = await this.transactionService.getAllTransactions(req.user!.uid);
         res.json(transactions);
       }
     } catch (error) {
@@ -64,10 +65,10 @@ export class TransactionController {
     }
   }
 
-  async getTransactionById(req: Request, res: Response): Promise<void> {
+  async getTransactionById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const transaction = await this.transactionService.getTransactionById(id);
+      const transaction = await this.transactionService.getTransactionById(id, req.user!.uid);
       
       if (!transaction) {
         res.status(404).json({ error: 'Transaction not found' });
@@ -80,7 +81,7 @@ export class TransactionController {
     }
   }
 
-  async createTransaction(req: Request, res: Response): Promise<void> {
+  async createTransaction(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { amount, description, category, type }: CreateTransactionDto = req.body;
       
@@ -94,7 +95,7 @@ export class TransactionController {
         return;
       }
 
-      const newTransaction = await this.transactionService.createTransaction({
+      const newTransaction = await this.transactionService.createTransaction(req.user!.uid, {
         amount: parseFloat(amount.toString()),
         description,
         category: category || 'Other',
@@ -107,7 +108,7 @@ export class TransactionController {
     }
   }
 
-  async updateTransaction(req: Request, res: Response): Promise<void> {
+  async updateTransaction(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updateData: UpdateTransactionDto = req.body;
@@ -121,7 +122,7 @@ export class TransactionController {
         updateData.amount = parseFloat(updateData.amount.toString());
       }
 
-      const updatedTransaction = await this.transactionService.updateTransaction(id, updateData);
+      const updatedTransaction = await this.transactionService.updateTransaction(id, req.user!.uid, updateData);
       
       if (!updatedTransaction) {
         res.status(404).json({ error: 'Transaction not found' });
@@ -134,10 +135,10 @@ export class TransactionController {
     }
   }
 
-  async deleteTransaction(req: Request, res: Response): Promise<void> {
+  async deleteTransaction(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const deleted = await this.transactionService.deleteTransaction(id);
+      const deleted = await this.transactionService.deleteTransaction(id, req.user!.uid);
       
       if (!deleted) {
         res.status(404).json({ error: 'Transaction not found' });

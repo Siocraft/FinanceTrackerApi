@@ -50,12 +50,14 @@ export class TransactionService {
     }
   }
 
-  async getAllTransactions(): Promise<Transaction[]> {
-    return this.readTransactions();
+  async getAllTransactions(userId: string): Promise<Transaction[]> {
+    const transactions = await this.readTransactions();
+    return transactions.filter(t => t.userId === userId);
   }
 
-  async getPaginatedTransactions(params: PaginationParams): Promise<PaginatedResponse<Transaction>> {
-    const transactions = await this.readTransactions();
+  async getPaginatedTransactions(userId: string, params: PaginationParams): Promise<PaginatedResponse<Transaction>> {
+    const allTransactions = await this.readTransactions();
+    const transactions = allTransactions.filter(t => t.userId === userId);
     
     // Apply sorting
     const sortedTransactions = this.sortTransactions(transactions, params.sortBy, params.sortOrder);
@@ -126,15 +128,16 @@ export class TransactionService {
     });
   }
 
-  async getTransactionById(id: string): Promise<Transaction | null> {
+  async getTransactionById(id: string, userId: string): Promise<Transaction | null> {
     const transactions = await this.readTransactions();
-    const transaction = transactions.find(t => t.id === id);
+    const transaction = transactions.find(t => t.id === id && t.userId === userId);
     return transaction ?? null;
   }
 
-  async createTransaction(transactionData: CreateTransactionDto): Promise<Transaction> {
+  async createTransaction(userId: string, transactionData: CreateTransactionDto): Promise<Transaction> {
     const newTransaction: Transaction = {
       id: uuidv4(),
+      userId,
       amount: transactionData.amount,
       description: transactionData.description,
       category: transactionData.category || 'Other',
@@ -150,9 +153,9 @@ export class TransactionService {
     return newTransaction;
   }
 
-  async updateTransaction(id: string, updateData: UpdateTransactionDto): Promise<Transaction | null> {
+  async updateTransaction(id: string, userId: string, updateData: UpdateTransactionDto): Promise<Transaction | null> {
     const transactions = await this.readTransactions();
-    const index = transactions.findIndex(t => t.id === id);
+    const index = transactions.findIndex(t => t.id === id && t.userId === userId);
 
     if (index === -1) {
       return null;
@@ -169,9 +172,9 @@ export class TransactionService {
     return updatedTransaction;
   }
 
-  async deleteTransaction(id: string): Promise<boolean> {
+  async deleteTransaction(id: string, userId: string): Promise<boolean> {
     const transactions = await this.readTransactions();
-    const index = transactions.findIndex(t => t.id === id);
+    const index = transactions.findIndex(t => t.id === id && t.userId === userId);
 
     if (index === -1) {
       return false;

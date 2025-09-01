@@ -3,9 +3,14 @@ import cors from 'cors';
 import { TransactionController } from './controllers/TransactionController.js';
 import { TransactionService } from './services/TransactionService.js';
 import { specs, swaggerUi } from './swagger.js';
+import { initializeFirebase } from './config/firebase.js';
+import { authenticateToken } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Firebase
+initializeFirebase();
 
 // Middleware
 app.use(cors());
@@ -161,7 +166,7 @@ app.get('/health', (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/transactions', (req, res) => transactionController.getAllTransactions(req, res));
+app.get('/transactions', authenticateToken, (req, res) => transactionController.getAllTransactions(req, res));
 
 /**
  * @swagger
@@ -201,7 +206,7 @@ app.get('/transactions', (req, res) => transactionController.getAllTransactions(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.get('/transactions/:id', (req, res) => transactionController.getTransactionById(req, res));
+app.get('/transactions/:id', authenticateToken, (req, res) => transactionController.getTransactionById(req, res));
 
 /**
  * @swagger
@@ -260,7 +265,7 @@ app.get('/transactions/:id', (req, res) => transactionController.getTransactionB
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.post('/transactions', (req, res) => transactionController.createTransaction(req, res));
+app.post('/transactions', authenticateToken, (req, res) => transactionController.createTransaction(req, res));
 
 /**
  * @swagger
@@ -327,7 +332,7 @@ app.post('/transactions', (req, res) => transactionController.createTransaction(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.put('/transactions/:id', (req, res) => transactionController.updateTransaction(req, res));
+app.put('/transactions/:id', authenticateToken, (req, res) => transactionController.updateTransaction(req, res));
 
 /**
  * @swagger
@@ -363,7 +368,7 @@ app.put('/transactions/:id', (req, res) => transactionController.updateTransacti
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.delete('/transactions/:id', (req, res) => transactionController.deleteTransaction(req, res));
+app.delete('/transactions/:id', authenticateToken, (req, res) => transactionController.deleteTransaction(req, res));
 
 // Start server
 async function startServer(): Promise<void> {
